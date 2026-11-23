@@ -67,6 +67,19 @@ describe("kyivDayOf rejects input it cannot place in Kyiv reliably", () => {
     expect(() => kyivDayOf("2026-03-10T25:00:00+02:00")).toThrow(RangeError);
   });
 
+  it("accepts 29 February in leap years and rejects it otherwise", () => {
+    expect(kyivDayOf("2028-02-29T12:00:00+02:00")).toBe("2028-02-29");
+    expect(kyivDayOf("2024-02-29T12:00:00+02:00")).toBe("2024-02-29");
+    expect(kyivDayOf("2000-02-29T12:00:00+02:00")).toBe("2000-02-29");
+    expect(() => kyivDayOf("2026-02-29T12:00:00+02:00")).toThrow(RangeError);
+    expect(() => kyivDayOf("1900-02-29T12:00:00+02:00")).toThrow(RangeError);
+  });
+
+  it("an impossible offset gets the same clear error", () => {
+    expect(() => kyivDayOf("2026-03-10T01:30:00+25:00")).toThrow(/does not exist/);
+    expect(() => kyivDayOf("2026-03-10T01:30:00+02:60")).toThrow(/does not exist/);
+  });
+
   it("keeps the year four digits long", () => {
     expect(kyivDayOf("0099-03-10T12:00:00+02:00")).toBe("0099-03-10");
   });
