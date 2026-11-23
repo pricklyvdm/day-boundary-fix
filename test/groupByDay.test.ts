@@ -80,6 +80,14 @@ describe("kyivDayOf rejects input it cannot place in Kyiv reliably", () => {
     expect(() => kyivDayOf("2026-03-10T01:30:00+02:60")).toThrow(/does not exist/);
   });
 
+  it("rejects year 0 and offsets outside the real range (-12:00..+14:00)", () => {
+    expect(() => kyivDayOf("0000-03-10T12:00:00Z")).toThrow(RangeError);
+    expect(() => kyivDayOf("2026-03-10T12:00:00+14:59")).toThrow(RangeError);
+    expect(() => kyivDayOf("2026-03-10T12:00:00-14:00")).toThrow(RangeError);
+    expect(kyivDayOf("2026-03-10T12:00:00+14:00")).toBe("2026-03-10");
+    expect(kyivDayOf("2026-03-10T12:00:00-12:00")).toBe("2026-03-11");
+  });
+
   it("keeps the year four digits long", () => {
     expect(kyivDayOf("0099-03-10T12:00:00+02:00")).toBe("0099-03-10");
   });
