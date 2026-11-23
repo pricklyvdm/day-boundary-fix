@@ -27,12 +27,15 @@ export function kyivDayOf(at: string): string {
   if (!m) {
     throw new RangeError(`Event time must be ISO 8601 with an offset: ${at}`);
   }
-  const [, y, mo, d, h, mi, sec = "0"] = m;
+  const [, y, mo, d, h, mi, sec = "0", zone] = m;
   // `new Date` silently rolls impossible values over (30 Feb -> 2 Mar), so check them first.
-  const check = new Date(Date.UTC(0, Number(mo) - 1, Number(d)));
-  check.setUTCFullYear(Number(y));
+  // Year, month and day are set in one call: setting them separately would pass through a
+  // non-leap placeholder year and break 29 February.
+  const check = new Date(0);
+  check.setUTCFullYear(Number(y), Number(mo) - 1, Number(d));
+  const [zh = 0, zm = 0] = zone === "Z" ? [] : zone.slice(1).split(":").map(Number);
   if (check.getUTCMonth() !== Number(mo) - 1 || check.getUTCDate() !== Number(d) ||
-      Number(h) > 23 || Number(mi) > 59 || Number(sec) > 59) {
+      Number(h) > 23 || Number(mi) > 59 || Number(sec) > 59 || zh > 14 || zm > 59) {
     throw new RangeError(`Date or time does not exist: ${at}`);
   }
   const parts = Object.fromEntries(
