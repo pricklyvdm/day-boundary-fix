@@ -84,3 +84,14 @@ describe("kyivDayOf rejects input it cannot place in Kyiv reliably", () => {
     expect(kyivDayOf("0099-03-10T12:00:00+02:00")).toBe("0099-03-10");
   });
 });
+
+describe("every real calendar day is accepted and kept as is", () => {
+  it("noon UTC of each day 1999-2030 maps to the same Kyiv date (covers all 29 Februaries)", () => {
+    const wrong: string[] = [];
+    for (let t = Date.UTC(1999, 0, 1); t < Date.UTC(2031, 0, 1); t += 86_400_000) {
+      const day = new Date(t).toISOString().slice(0, 10);
+      if (kyivDayOf(`${day}T12:00:00Z`) !== day) wrong.push(day);
+    }
+    expect(wrong).toEqual([]);
+  });
+});
