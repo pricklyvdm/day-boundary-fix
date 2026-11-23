@@ -23,4 +23,5 @@
 npm install
 npm test
 npm run typecheck
+node demo.ts   # какой день был и стал для нескольких событий
 ```
