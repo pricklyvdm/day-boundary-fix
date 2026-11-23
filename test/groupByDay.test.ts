@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupByDay } from "../src/groupByDay";
+import { groupByDay, kyivDayOf } from "../src/groupByDay";
 
 const days = (ats: string[]) => Object.keys(groupByDay(ats.map((at) => ({ at })))).sort();
 
@@ -47,5 +47,27 @@ describe("groupByDay counts the day in Europe/Kyiv", () => {
 
   it("rejects an invalid date instead of silently dropping it", () => {
     expect(() => groupByDay([{ at: "not a date" }])).toThrow();
+  });
+
+  it("the last evening of the 25-hour day (25.10.2026) and of the short day (29.03.2026)", () => {
+    // Catches an offset switched on too early in spring or off too late in autumn.
+    expect(days(["2026-03-28T21:30:00Z"])).toEqual(["2026-03-28"]); // 23:30 Kyiv, +02:00
+    expect(days(["2026-10-25T21:30:00Z"])).toEqual(["2026-10-25"]); // 23:30 Kyiv, +02:00
+    expect(days(["2026-10-25T23:59:00+02:00"])).toEqual(["2026-10-25"]);
+  });
+});
+
+describe("kyivDayOf rejects input it cannot place in Kyiv reliably", () => {
+  it("time without an offset (would depend on the server's time zone)", () => {
+    expect(() => kyivDayOf("2026-03-10T01:30:00")).toThrow(RangeError);
+  });
+
+  it("a calendar date that does not exist (JavaScript would roll 30 Feb into March)", () => {
+    expect(() => kyivDayOf("2026-02-30T12:00:00+02:00")).toThrow(RangeError);
+    expect(() => kyivDayOf("2026-03-10T25:00:00+02:00")).toThrow(RangeError);
+  });
+
+  it("keeps the year four digits long", () => {
+    expect(kyivDayOf("0099-03-10T12:00:00+02:00")).toBe("0099-03-10");
   });
 });
