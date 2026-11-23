@@ -4,10 +4,13 @@ export interface Event {
 
 export const REPORT_TIME_ZONE = "Europe/Kyiv";
 
-// "en-CA" formats dates as YYYY-MM-DD. The time zone database inside Intl knows when Kyiv
-// switches between +02:00 and +03:00, so daylight saving time needs no manual offsets.
-const kyivDay = new Intl.DateTimeFormat("en-CA", {
+// The time zone database inside Intl knows when Kyiv switches between +02:00 and +03:00,
+// so daylight saving time needs no manual offsets. The date is assembled from parts
+// (year, month, day) instead of relying on a locale's display format.
+const kyivParts = new Intl.DateTimeFormat("en-US", {
   timeZone: REPORT_TIME_ZONE,
+  calendar: "gregory",
+  numberingSystem: "latn",
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
@@ -19,7 +22,8 @@ export function kyivDayOf(at: string): string {
   if (Number.isNaN(moment.getTime())) {
     throw new RangeError(`Invalid event time: ${at}`);
   }
-  return kyivDay.format(moment);
+  const part = (type: string) => kyivParts.formatToParts(moment).find((p) => p.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 // Bug was: new Date(e.at).toISOString().slice(0, 10) takes the day in UTC, so anything
