@@ -33,9 +33,12 @@ export function kyivDayOf(at: string): string {
   // non-leap placeholder year and break 29 February.
   const check = new Date(0);
   check.setUTCFullYear(Number(y), Number(mo) - 1, Number(d));
-  const [zh = 0, zm = 0] = zone === "Z" ? [] : zone.slice(1).split(":").map(Number);
-  if (check.getUTCMonth() !== Number(mo) - 1 || check.getUTCDate() !== Number(d) ||
-      Number(h) > 23 || Number(mi) > 59 || Number(sec) > 59 || zh > 14 || zm > 59) {
+  // Real UTC offsets run from -12:00 to +14:00.
+  const offsetMin = zone === "Z" ? 0
+    : (zone[0] === "-" ? -1 : 1) * (Number(zone.slice(1, 3)) * 60 + Number(zone.slice(4, 6)));
+  const badOffset = zone !== "Z" && (Number(zone.slice(4, 6)) > 59 || offsetMin < -720 || offsetMin > 840);
+  if (Number(y) < 1 || check.getUTCMonth() !== Number(mo) - 1 || check.getUTCDate() !== Number(d) ||
+      Number(h) > 23 || Number(mi) > 59 || Number(sec) > 59 || badOffset) {
     throw new RangeError(`Date or time does not exist: ${at}`);
   }
   const parts = Object.fromEntries(
