@@ -16,14 +16,29 @@ const kyivParts = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
 });
 
+// Events must carry an explicit offset (Z or ±HH:MM): without it `new Date` would read the time
+// in the server's own zone and the result would depend on where the code runs.
+const ISO_WITH_OFFSET =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
+
 /** Calendar day (YYYY-MM-DD) of a moment, counted in Kyiv time. */
 export function kyivDayOf(at: string): string {
-  const moment = new Date(at);
-  if (Number.isNaN(moment.getTime())) {
-    throw new RangeError(`Invalid event time: ${at}`);
+  const m = ISO_WITH_OFFSET.exec(at);
+  if (!m) {
+    throw new RangeError(`Event time must be ISO 8601 with an offset: ${at}`);
   }
-  const part = (type: string) => kyivParts.formatToParts(moment).find((p) => p.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
+  const [, y, mo, d, h, mi, sec = "0"] = m;
+  // `new Date` silently rolls impossible values over (30 Feb -> 2 Mar), so check them first.
+  const check = new Date(Date.UTC(0, Number(mo) - 1, Number(d)));
+  check.setUTCFullYear(Number(y));
+  if (check.getUTCMonth() !== Number(mo) - 1 || check.getUTCDate() !== Number(d) ||
+      Number(h) > 23 || Number(mi) > 59 || Number(sec) > 59) {
+    throw new RangeError(`Date or time does not exist: ${at}`);
+  }
+  const parts = Object.fromEntries(
+    kyivParts.formatToParts(new Date(at)).map((p) => [p.type, p.value]),
+  );
+  return `${parts.year.padStart(4, "0")}-${parts.month}-${parts.day}`;
 }
 
 // Bug was: new Date(e.at).toISOString().slice(0, 10) takes the day in UTC, so anything

@@ -1,4 +1,5 @@
-// Run: node demo.ts  — shows which day each event lands in, before and after the fix.
+// Run: node demo.ts (Node 22.18+; older Node: node --experimental-strip-types demo.ts)
+// Shows which day each event lands in, before and after the fix.
 import { groupByDay } from "./src/groupByDay.ts";
 
 const oldDay = (at: string) => new Date(at).toISOString().slice(0, 10); // the original line
@@ -13,5 +14,5 @@ const events = [
 
 for (const at of events) {
   const fixed = Object.keys(groupByDay([{ at }]))[0];
-  console.log(`${at}  было: ${oldDay(at)}  стало: ${fixed}  ${oldDay(at) === fixed ? "" : "<- баг был тут"}`);
+  console.log(`${at}  було: ${oldDay(at)}  стало: ${fixed}  ${oldDay(at) === fixed ? "" : "<- тут був баг"}`);
 }
