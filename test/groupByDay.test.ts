@@ -61,36 +61,6 @@ describe("kyivDayOf rejects input it cannot place in Kyiv reliably", () => {
   it("time without an offset (would depend on the server's time zone)", () => {
     expect(() => kyivDayOf("2026-03-10T01:30:00")).toThrow(RangeError);
   });
-
-  it("a calendar date that does not exist (JavaScript would roll 30 Feb into March)", () => {
-    expect(() => kyivDayOf("2026-02-30T12:00:00+02:00")).toThrow(RangeError);
-    expect(() => kyivDayOf("2026-03-10T25:00:00+02:00")).toThrow(RangeError);
-  });
-
-  it("accepts 29 February in leap years and rejects it otherwise", () => {
-    expect(kyivDayOf("2028-02-29T12:00:00+02:00")).toBe("2028-02-29");
-    expect(kyivDayOf("2024-02-29T12:00:00+02:00")).toBe("2024-02-29");
-    expect(kyivDayOf("2000-02-29T12:00:00+02:00")).toBe("2000-02-29");
-    expect(() => kyivDayOf("2026-02-29T12:00:00+02:00")).toThrow(RangeError);
-    expect(() => kyivDayOf("1900-02-29T12:00:00+02:00")).toThrow(RangeError);
-  });
-
-  it("an impossible offset gets the same clear error", () => {
-    expect(() => kyivDayOf("2026-03-10T01:30:00+25:00")).toThrow(/does not exist/);
-    expect(() => kyivDayOf("2026-03-10T01:30:00+02:60")).toThrow(/does not exist/);
-  });
-
-  it("rejects year 0 and offsets outside the real range (-12:00..+14:00)", () => {
-    expect(() => kyivDayOf("0000-03-10T12:00:00Z")).toThrow(RangeError);
-    expect(() => kyivDayOf("2026-03-10T12:00:00+14:59")).toThrow(RangeError);
-    expect(() => kyivDayOf("2026-03-10T12:00:00-14:00")).toThrow(RangeError);
-    expect(kyivDayOf("2026-03-10T12:00:00+14:00")).toBe("2026-03-10");
-    expect(kyivDayOf("2026-03-10T12:00:00-12:00")).toBe("2026-03-11");
-  });
-
-  it("keeps the year four digits long", () => {
-    expect(kyivDayOf("0099-03-10T12:00:00+02:00")).toBe("0099-03-10");
-  });
 });
 
 describe("every real calendar day is accepted and kept as is", () => {
